@@ -7,71 +7,64 @@ CONTRACT address: public contract {
 
     using contract::contract;
 
-    ACTION countuser(name user){
+    ACTION countaction(name user){
         require_auth(get_self());
 
-        address_index forCountuser(get_self(), get_self().value);
-        auto itr = forCountuser.require_find(user.value, "NO USER, INSERT IT");
-        if(itr != forCountuser.end()){
-            forCountuser.modify(itr, user, [&](auto& row){
-                row.user = user;
-            row.count ++;
+        counts forCount(get_self(), get_self().value);
+        auto itr = forCount.find(user.value); //사용자가 어디있는지 가리킴
+        
+        if(itr == forCount.end()){//user가 없는 경우
+            forCount.emplace(user, [&](auto& row){
+            row.user = user;
+            row.count = 1;//action을 실행한 횟수
             });
         }
         else {
-            forCountuser.emplace(user, [&](auto& row){
-                row.user = user;
+            forCount.modify(itr, user, [&](auto& row){
+               
                 row.count ++;
             });
         }
-        print(itr -> count);
+        print("SUCCESS!!!");
     }
     
     ACTION findcount(uint64_t count){
-        address_index forFindcount(get_self(), get_self().value);
-        auto forSecondary = forFindcount.get_index<"bycount"_n>();
+        counts forFindcount(get_self(), get_self().value);
+        auto forSecondary = forFindcount.get_index<"bycount"_n>();//forfind랑 다른점_ indexing
 
-        auto itr = forFindcount.require_find(count, "NO");
-
-        print (itr->user);
-    }
-
-    ACTION insert(name user){
-        require_auth(get_self());
-
-
-        address_index forInsert(get_self(), get_self().value);
-        auto itr = forInsert.find(user.value);
-
-        check(itr == forInsert.end(), "already exists");
-
-        forInsert.emplace(user, [&](auto& row){
-            row.user = user;
-        });
-
-        print("!!!INSERT SUCCESS!!!");
+        auto itr = forSecondary.find(count);
+        if(itr != forSecondary.end()){
+            print(itr->user, " ", itr->count);
+        }
+        else {
+            print("Nobody has that count number");
+        }
     }
 
     ACTION eraseall() {
         require_auth(get_self());
 
-        address_index forEraseAll(get_self(), get_self().value);
+        counts forEraseAll(get_self(), get_self().value);
            auto itr = forEraseAll.begin();
-           while(itr != forEraseAll.end()) { itr = forEraseAll.erase(itr); }
-           itr ++;
 
+           while(itr != forEraseAll.end()) { itr = forEraseAll.erase(itr); } //함수의 특징(erase함수의 특징), 다음 이터레이터를 반환하기 때문
            print("!!!ERASE ALL!!!");
+
+           /*for(auto i = forEraseAll.begin(); i = forEraseAll.end();){
+               i = forEraseAll.erase(i);
+           } */
     }
 
     private:
-    struct [[eosio::table]] person {
-        name user;
+    struct [[eosio::table]] countstruct {
+        name user; //count의 주인이 되는 계정
         uint64_t count;
 
         uint64_t primary_key() const { return user.value; }
-        uint64_t by_count() const { return count; }
+        uint64_t by_count() const { return count; }//secondary index 이용
     };
 
-    typedef multi_index<"counttable"_n, person,
-    indexed_by<"bycount"_n, const_mem_fun<person, uint64_t, &person::by_count>>> address_index;
+    typedef multi_index<"counttable"_n, countstruct,
+    indexed_by<"bycount"_n/*secondary index이름 */, const_mem_fun<countstruct, uint64_t, &countstruct::by_count>>> counts;
+    //const_mem_fun: secondary index의 정의를 정의한다.
 };

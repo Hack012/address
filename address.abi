@@ -4,12 +4,26 @@
     "types": [],
     "structs": [
         {
-            "name": "countuser",
+            "name": "countaction",
             "base": "",
             "fields": [
                 {
                     "name": "user",
                     "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "countstruct",
+            "base": "",
+            "fields": [
+                {
+                    "name": "user",
+                    "type": "name"
+                },
+                {
+                    "name": "count",
+                    "type": "uint64"
                 }
             ]
         },
@@ -27,36 +41,12 @@
                     "type": "uint64"
                 }
             ]
-        },
-        {
-            "name": "insert",
-            "base": "",
-            "fields": [
-                {
-                    "name": "user",
-                    "type": "name"
-                }
-            ]
-        },
-        {
-            "name": "person",
-            "base": "",
-            "fields": [
-                {
-                    "name": "user",
-                    "type": "name"
-                },
-                {
-                    "name": "count",
-                    "type": "uint64"
-                }
-            ]
         }
     ],
     "actions": [
         {
-            "name": "countuser",
-            "type": "countuser",
+            "name": "countaction",
+            "type": "countaction",
             "ricardian_contract": ""
         },
         {
@@ -68,17 +58,12 @@
             "name": "findcount",
             "type": "findcount",
             "ricardian_contract": ""
-        },
-        {
-            "name": "insert",
-            "type": "insert",
-            "ricardian_contract": ""
         }
     ],
     "tables": [
         {
             "name": "counttable",
-            "type": "person",
+            "type": "countstruct",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
